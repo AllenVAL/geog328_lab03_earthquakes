@@ -1,1 +1,167 @@
+<!DOCTYPE html>
+<html lang="en-US">
+ <head>
+    <meta charset="utf-8">
+    <title>Japan Schools</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
+    <style>
+     body {
+       margin: 0;
+       padding: 0;
+     }
+     #container {
+       display: flex;
+       height: 100vh;
+       flex-direction: row;
+       align-items: stretch;
+     }
+     /* put map first so side-panel sits on the right */
+     #map {
+       flex-grow: 1;
+     }
+     #side-panel {
+       flex-basis: 500px;
+       overflow-y: scroll;
+     }
+     button {
+       margin-bottom: 10px;
+     }
+     table {
+       border-collapse: collapse;
+       border-spacing: 0;
+       width: 100%;
+       border: 1px solid #ddd;
+     }
+     th, td {
+       text-align: left;
+       padding: 16px;
+     }
+     tr:nth-child(even) {
+       background-color: #f2f2f2;
+     }
+     /* simple responsive rule per deliverable */
+     @media (max-width: 1024px) {
+       #side-panel { display: none; }
+     }
+    </style>
+ </head>
+ <body>
+   <main id="container">
+       <div id="map"></div>
+       <div id="side-panel">
+           <h2>Japan Schools</h2>
+           <button id="sortBtn">Sort by Level (University first)</button>
+           <table>
+               <tr>
+                   <th>name</th>
+                   <th>prefecture</th>
+                   <th>level</th>
+               </tr>
+           </table>
+       </div>
+   </main>
+   <script>
+    // Replace with your own token
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYWxsZW55dWFuIiwiYSI6ImNtaGU0eGxpNzBhZmQyanEyY3pxZDFoM3oifQ.3KmK2WRpvAGKu9R2l2mHVA';
 
+    let map = new mapboxgl.Map({
+      container: 'map',
+      // different basemap style from earthquake example
+      style: 'mapbox://styles/mapbox/light-v11',
+      zoom: 4.8,
+      center: [138, 38]
+    });
+
+    async function geojsonFetch() {
+      let response, schools, japan, table;
+      response = await fetch('assets/schools_japan.geojson');
+      schools = await response.json();
+      response = await fetch('assets/japan.json');
+      japan = await response.json();
+
+      // load data to the map as new layers and table on the side.
+      map.on('load', function loadingData() {
+
+        map.addSource('japan', {
+          type: 'geojson',
+          data: japan
+        });
+
+        map.addLayer({
+          'id': 'japan-layer',
+          'type': 'fill',
+          'source': 'japan',
+          'paint': {
+            'fill-color': '#0080ff',
+            'fill-opacity': 0.5
+          }
+        });
+
+        map.addSource('schools', {
+          type: 'geojson',
+          data: schools
+        });
+
+        map.addLayer({
+          'id': 'schools-layer',
+          'type': 'circle',
+          'source': 'schools',
+          'paint': {
+            'circle-radius': 8,
+            'circle-stroke-width': 2,
+            'circle-color': 'red',
+            'circle-stroke-color': 'white'
+          }
+        });
+
+      });
+
+      table = document.getElementsByTagName("table")[0];
+      let row, cell1, cell2, cell3;
+      for (let i = 0; i < schools.features.length; i++) {
+        row = table.insertRow(-1);
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell1.innerHTML = schools.features[i].properties.name || '';
+        cell2.innerHTML = schools.features[i].properties.prefecture || '';
+        cell3.innerHTML = schools.features[i].properties.level || '';
+      }
+    };
+
+    geojsonFetch();
+
+    let btn = document.getElementById("sortBtn");
+    btn.addEventListener('click', sortTable);
+
+    // define the function to sort table (university first, then high_school)
+    function sortTable(e) {
+      let table, rows, switching, i, x, y, shouldSwitch;
+      table = document.getElementsByTagName("table")[0];
+      switching = true;
+      while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 1; i < (rows.length - 1); i++) {
+          shouldSwitch = false;
+          x = rows[i].getElementsByTagName("td")[2].innerHTML.toLowerCase();
+          y = rows[i + 1].getElementsByTagName("td")[2].innerHTML.toLowerCase();
+          // simple rank function: university (0) < high_school (1)
+          let rankX = (x === 'university') ? 0 : 1;
+          let rankY = (y === 'university') ? 0 : 1;
+          if (rankX > rankY) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+        if (shouldSwitch) {
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+        }
+      }
+    }
+   </script>
+ </body>
+</html>
