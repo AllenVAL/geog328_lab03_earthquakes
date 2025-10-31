@@ -66,6 +66,13 @@
        <div id="map"></div>
    </main>
    <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYWxsZW55dWFuIiwiYSI6ImNtaGU0eGxpNzBhZmQyanEyY3pxZDFoM3oifQ.3KmK2WRpvAGKu9R2l2mHVA';
+    let map = new mapboxgl.Map({
+    container: 'map', // container ID
+    style: 'mapbox://styles/mapbox/satellite-v9', // style URL
+    zoom: 5.5, // starting zoom
+    center: [138, 38] // starting center
+});
    </script>
  </body>   
 <html>  
