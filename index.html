@@ -52,7 +52,7 @@
        <div id="map"></div>
        <div id="side-panel">
            <h2>Japan Schools</h2>
-           <button id="sortBtn">Sort by Level (University first)</button>
+           <button id="sortBtn">Sort by Level (High School first)</button>
            <table>
                <tr>
                    <th>name</th>
@@ -136,7 +136,7 @@
     let btn = document.getElementById("sortBtn");
     btn.addEventListener('click', sortTable);
 
-    // define the function to sort table (university first, then high_school)
+    // define the function to sort table (high_school first)
     function sortTable(e) {
       let table, rows, switching, i, x, y, shouldSwitch;
       table = document.getElementsByTagName("table")[0];
@@ -148,9 +148,8 @@
           shouldSwitch = false;
           x = rows[i].getElementsByTagName("td")[2].innerHTML.toLowerCase();
           y = rows[i + 1].getElementsByTagName("td")[2].innerHTML.toLowerCase();
-          // simple rank function: university (0) < high_school (1)
-          let rankX = (x === 'university') ? 0 : 1;
-          let rankY = (y === 'university') ? 0 : 1;
+          let rankX = (x === 'high_school') ? 0 : 1;
+          let rankY = (y === 'high_school') ? 0 : 1;
           if (rankX > rankY) {
             shouldSwitch = true;
             break;
